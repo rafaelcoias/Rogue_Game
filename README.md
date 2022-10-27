@@ -14,7 +14,7 @@ This project aims to apply the knowledge acquired during the Object-oriented pro
 
 Coming soon
 
-## Play it your self!
+## Try it yourself!
 
 Coming soon
 
