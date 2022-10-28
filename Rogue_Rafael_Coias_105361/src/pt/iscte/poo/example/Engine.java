@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 
 import pt.iscte.poo.gui.ImageMatrixGUI;
 import pt.iscte.poo.gui.ImageTile;
@@ -18,12 +19,17 @@ public class Engine implements Observer {
 
 	public static final int GRID_HEIGHT = 12;
 	public static final int GRID_WIDTH = 10;
+	public static final int ENTER = 10;
+	public static final int ESCAPE = 27;
 	
 	private static Engine INSTANCE = null;
 	private static ImageMatrixGUI gui = ImageMatrixGUI.getInstance();
 	
+	private String username;
 	private static Hero hero;
 	private int turns;
+	private static boolean win = false;
+	private static boolean lose = false;
 	
 	private static Room currentRoom;
 	private static List<Room> rooms = new ArrayList<>();
@@ -35,6 +41,7 @@ public class Engine implements Observer {
 	}
 
 	private Engine() {		
+		username = gui.askUser("Enter your name :");
 		gui.registerObserver(this);
 		gui.setSize(GRID_WIDTH, GRID_HEIGHT);
 		gui.go();
@@ -44,16 +51,16 @@ public class Engine implements Observer {
 	// then waits for a key to be pressed
 	
 	public void start() {
+		gui.setName("ROGUE");
 		Room room = new Room(new File("./rooms/room0.txt"));
-		addRoom(room);
-		addFloor();
 		currentRoom = room;
+		addRoom(room);
+		addFloor();/*
 		hero = new Hero(new Point2D(1,1), currentRoom);
-		addObjectToGame(hero);
 		createMap(room);
 		gui.setStatusMessage("   ROGUE                           Moves: " 
 				+ turns + "            Score: " + hero.getScore());
-		gui.update();
+		gui.update();*/
 	}
 	
 	// Adds the floor to the game
@@ -70,7 +77,9 @@ public class Engine implements Observer {
 	// Returns an error if there is no file found
 	
 	public static void createMap(Room room) {
+		currentRoom.removeObject(hero);
 		currentRoom = room;
+		addObjectToGame(hero);
 		try {
 			readMap(room.getFile());
 		} catch (FileNotFoundException e) {
@@ -133,7 +142,7 @@ public class Engine implements Observer {
 			else if (object.equals("Key"))
 				addObjectToGame(new Key(new Point2D(i, j), Integer.parseInt(allLine.substring(allLine.length() - 1))));
 			else if (object.equals("Door"))
-				addObjectToGame(new Door(new Point2D(i, j), new Room(doFile(line[3])), new Point2D(Integer.parseInt(line[4]), Integer.parseInt(line[5])), Integer.parseInt(allLine.substring(allLine.length() - 1))));
+				addObjectToGame(new Door(new Point2D(i, j), new Room(doFile(line[3])), new Point2D(Integer.parseInt(line[4]), Integer.parseInt(line[5])), line.length == 7 ? Integer.parseInt(allLine.substring(allLine.length() - 1)) : -1));
 		}
 	}
 	
@@ -153,7 +162,9 @@ public class Engine implements Observer {
 	@Override
 	public void update(Observed source) {
 		int key = ((ImageMatrixGUI) source).keyPressed();
-		
+
+		if ((win || lose) && checkEndGame(key))
+			return ;
 		if (isTurn(key)) {
 			if (Direction.isDirection(key))
 				hero.moveHero(key);
@@ -184,14 +195,13 @@ public class Engine implements Observer {
 				Vector2D moveVector = e.getPosition().vectorTo(hero.getPosition());
 				GameElement objInFront = currentRoom.getObject(e.getPosition().plus(moveVector));
 				Mob mob = (Mob)e;
-				if (objInFront == null || mob.canMove(objInFront))
+				if (objInFront == null || (mob.canMove(objInFront) && !objInFront.getName().equals("DoorClosed") && !objInFront.getName().equals("DoorOpen")))
 					mob.move(moveVector);
 				else if (objInFront.getName().equals(hero.getName()))
 					mob.attack(moveVector);
 				else if (e.getName().equals("Bat"))
 					mob.move(moveVector);
 			}
-			//System.out.println(e.getName() + " - " + e.getPosition());
 		}
 	}
 	
@@ -200,9 +210,17 @@ public class Engine implements Observer {
 	//	Re do the existing room
 	
 	public static void reDoMap(Room room) {
-		currentRoom = room;
-		for (GameElement e : room.getObjects())
+		currentRoom = rooms.get(getRoomIndex(room));
+		for (GameElement e : currentRoom.getObjects())
 			gui.addImage(e);
+		currentRoom.addObject(hero);
+	}
+	
+	private static int getRoomIndex(Room room) {
+		for (Room r : rooms)
+			if (r.getFile().equals(room.getFile()))
+				return rooms.indexOf(r);
+		return -1;
 	}
 	
 	// Remove object from the game and from the Object List
@@ -243,7 +261,38 @@ public class Engine implements Observer {
 	
 	// Ends the game when hero dies or when it finds the treasure
 	
-	public static void endGame() {
-		System.exit(0);
+	public static void endGame(boolean won) {
+		if (won)
+			win = true;
+		else
+			lose = true;
+		gui.addImage(new EndGame(won));
+	}
+	
+	private boolean checkEndGame(int key) {
+		try {
+			saveGame();
+		} catch (FileNotFoundException e) {
+			System.err.println("Erro na abertura do ficheiro");
+		}
+		if (key == ESCAPE)
+			System.exit(0);
+		else if (key == ENTER) {
+			for (Room r : rooms) {
+				for (GameElement e : r.getObjects())
+					gui.removeImage(e);
+				r.getObjects().clear();
+			}
+			hero.clearItems();
+			gui.removeImage(hero);
+			rooms.clear();
+			start();
+		}
+		return key == ENTER;
+	}
+	
+	private void saveGame() throws FileNotFoundException {
+		PrintWriter write = new PrintWriter(new File("./savedGames"));
+		write.println(username + " : " + hero.getScore());
 	}
 }

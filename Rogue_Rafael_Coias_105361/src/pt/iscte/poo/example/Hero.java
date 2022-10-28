@@ -10,13 +10,12 @@ import pt.iscte.poo.utils.Vector2D;
 public class Hero extends GameElement implements Mob {
 
 	private Point2D position;
-	private int currentRoom;
 	private Room room;
-	private String name = "User1";
 
-	private int life = 10;
+	private int life;
 	private int score = 0;
 	
+	private final static int MAXLIFE = 10;
 	private final static int SWORD = 2;
 	private final static int DAMAGE = -1;
 	private final static int LAYER = 2;
@@ -33,6 +32,7 @@ public class Hero extends GameElement implements Mob {
 		for (int i = 0; i != Engine.GRID_WIDTH; i++)
 			lifeBar.add(new Square(new Point2D(i, Engine.GRID_HEIGHT - 1), "Green"));
 		this.room = room;
+		life = MAXLIFE;
 	}
 	
 	
@@ -70,10 +70,10 @@ public class Hero extends GameElement implements Mob {
 
 	@Override
 	public void setLife(int DAMAGE) {
-		if ((DAMAGE > 0 && getLife() == 10) || (hasArmor() && random(50)))
+		if ((DAMAGE > 0 && getLife() == MAXLIFE) || (hasArmor() && random(50)))
 			return ;
 		life = life + DAMAGE < 0 ? 0 : life + DAMAGE;
-		life = life > 10 ? 10 : life;
+		life = life > MAXLIFE ? MAXLIFE : life;
 		for (int i = 0; i != life; i++)
 			lifeBar.set(i, new Square(new Point2D(i, Engine.GRID_HEIGHT - 1), "Green"));
 		for (int i = life; i != 10; i++)
@@ -92,6 +92,12 @@ public class Hero extends GameElement implements Mob {
 		if (mob.getLife() > 0)
 			return ;
 		Engine.removeObject(room.getObject(position.plus(moveVector)));
+		score += mob.getKillValue();
+	}
+	
+	@Override
+	public int getKillValue() {
+		return 0;
 	}
 	
 	
@@ -105,7 +111,9 @@ public class Hero extends GameElement implements Mob {
 		Direction move = Direction.directionFor(key);
 		Vector2D moveVector = move.asVector();
 		GameElement objInFront = room.getObject(position.plus(moveVector));
-		if (objInFront == null)
+		if (isMapLimit(moveVector))
+			return ;
+		if (objInFront == null && !isMapLimit(moveVector))
 			move(moveVector);
 		else if (objInFront.getLayer() == getLayer())
 			attack(moveVector);
@@ -113,13 +121,20 @@ public class Hero extends GameElement implements Mob {
 			pickItem((Item)objInFront, moveVector);
 		else if (objInFront.getName().equals("DoorOpen"))
 			moveToNextRoom((Door)objInFront);
-		else if (canMove(objInFront))
-			move(moveVector);
 		else if (objInFront.getName().equals("DoorClosed")) {
 			Door door = (Door)objInFront;
 			if (hasKey(door))
 				door.openDoor();
 		}
+		else if (canMove(objInFront) && !isMapLimit(moveVector))
+			move(moveVector);
+	}
+	
+	private boolean isMapLimit(Vector2D v) {
+		Point2D p = position.plus(v);
+		if (p.getX() < 0 || p.getY() < 0 || p.getX() >= Engine.GRID_WIDTH || p.getY() >= Engine.GRID_HEIGHT - 2)
+			return true;
+		return false;
 	}
 	
 	// Picks an Object and checks if it is a
@@ -132,7 +147,12 @@ public class Hero extends GameElement implements Mob {
 		move(v);
 		i.setPosition(new Point2D(items, Engine.GRID_HEIGHT - 2));
 		itemsBar.add(items, i);
+		room.removeObject((GameElement)i);
 		items++;
+		if (i.getName().equals("Treasure")) {
+			score += 100;
+			Engine.endGame(true);
+		}
 	}
 	
 	// Drops an Object in the index specified
@@ -150,6 +170,7 @@ public class Hero extends GameElement implements Mob {
 		Item i = itemsBar.get(index);
 		i.setPosition(getPosition());
 		itemsBar.remove(index);
+		room.addObject((GameElement)i);
 		sortItemsBar(index);
 		items--;
 	}
@@ -189,7 +210,7 @@ public class Hero extends GameElement implements Mob {
 		for (Item i : itemsBar) {
 			if (i.getName().equals("Key")) {
 				Key k = (Key)i;
-				if (k.getID() == door.getID())
+				if (k.getID() == door.getID() || door.getID() == -1)
 					return true;
 			}
 		}	
@@ -220,11 +241,13 @@ public class Hero extends GameElement implements Mob {
 		if (!Engine.roomExists(d.getNextRoom())) {
 			Engine.addRoom(d.getNextRoom());
 			Engine.createMap(d.getNextRoom());
+			score += 10;
 			Door door = (Door)d.getNextRoom().getObject(d.getNextPosition());
 			door.openDoor();
 		} 
 		else
 			Engine.reDoMap(d.getNextRoom());
+		room.removeObject(this);
 		room = Engine.getCurrentRoom();
 		position = d.getNextPosition();
 	}
@@ -235,19 +258,11 @@ public class Hero extends GameElement implements Mob {
 		this.room = room;
 	}
 	
-	// Changes user's name
-
-	public void setName(String name) {
-		this.name = name;
-		if (name == null)
-			this.name = "User1";
+	public void clearItems() {
+		itemsBar.clear();
 	}
 	
 // Get Functions
-	
-	public String getUserName() {
-		return name;
-	}
 	
 	public int getScore() {
 		return score;

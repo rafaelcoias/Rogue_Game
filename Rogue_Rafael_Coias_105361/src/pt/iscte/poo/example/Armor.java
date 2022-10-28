@@ -6,7 +6,6 @@ public class Armor extends GameElement implements Item {
 	private Point2D position;
 	private final static int LAYER = 1;
 	
-	
 	public Armor(Point2D position) {
 		super(position, LAYER);
 		this.position = position;

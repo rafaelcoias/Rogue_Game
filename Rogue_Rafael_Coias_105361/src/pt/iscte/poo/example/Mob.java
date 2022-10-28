@@ -7,4 +7,5 @@ public interface Mob {
 	public void attack(Vector2D moveVector);
 	public void setLife(int damage);
 	public int getLife();
+	public int getKillValue();
 }

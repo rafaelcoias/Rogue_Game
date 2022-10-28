@@ -9,6 +9,7 @@ public class Bat extends GameElement implements Mob {
 	private Room room;
 	private int life = 3;
 	
+	private final static int KILLVALUE = 5;
 	private final static int DAMAGE = -1;
 	private final static int LAYER = 2;
 	
@@ -46,19 +47,19 @@ public class Bat extends GameElement implements Mob {
 		setLife(1);
 		if (mob.getLife() > 0)
 			return ;
-		Engine.endGame();
+		Engine.endGame(false);
 	}
 	
 	@Override
 	public void move(Vector2D v) {
 		GameElement e = room.getObject(getPosition().plus(v));
-		if (random(50) && (e == null || canMove(e))) {
+		if (random(50) && (e == null || (canMove(e) && !e.getName().equals("DoorClosed") && !e.getName().equals("DoorOpen")))) {
 			position = position.plus(v);
 			return ;
 		}
 		Vector2D randomVector = randomVector();
 		e = room.getObject(getPosition().plus(randomVector));
-		if (e == null || canMove(e))
+		if (e == null || (canMove(e) && !e.getName().equals("DoorClosed") && !e.getName().equals("DoorOpen")))
 			position = position.plus(randomVector);
 	}
 	
@@ -77,5 +78,10 @@ public class Bat extends GameElement implements Mob {
 	@Override
 	public int getLife() {
 		return life;
+	}
+	
+	@Override
+	public int getKillValue() {
+		return KILLVALUE;
 	}
 }

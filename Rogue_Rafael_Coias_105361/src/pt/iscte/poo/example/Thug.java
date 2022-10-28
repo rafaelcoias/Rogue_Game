@@ -8,6 +8,7 @@ public class Thug extends GameElement implements Mob {
 	private Room room;
 	private int life = 10;
 	
+	private final static int KILLVALUE = 30;
 	private final static int DAMAGE = -1;
 	private final static int LAYER = 2;
 	
@@ -46,7 +47,7 @@ public class Thug extends GameElement implements Mob {
 			mob.setLife(DAMAGE);
 		if (mob.getLife() > 0)
 			return ;
-		Engine.endGame();
+		Engine.endGame(false);
 	}
 	
 	@Override
@@ -67,5 +68,10 @@ public class Thug extends GameElement implements Mob {
 	@Override
 	public int getLife() {
 		return life;
+	}
+	
+	@Override
+	public int getKillValue() {
+		return KILLVALUE;
 	}
 }

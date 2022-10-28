@@ -9,10 +9,10 @@ public class Door extends GameElement {
 	
 	private final int ID;
 	private boolean opened;
-	private static int layer = 3;
+	private final static int LAYER = 0;
 	
 	public Door(Point2D position, Room nextRoom, Point2D nextPosition, int ID) {
-		super(position, layer);
+		super(position, LAYER);
 		this.position = position;
 		this.nextRoom = nextRoom;
 		this.nextPosition = nextPosition;
@@ -20,13 +20,13 @@ public class Door extends GameElement {
 		opened = false;
 	}
 	
-	public Door(Point2D position, Room nextRoom, Point2D nextPosition, int ID, boolean opened) {
-		super(position, layer);
+	public Door(Point2D position, Room nextRoom, Point2D nextPosition) {
+		super(position, LAYER);
 		this.position = position;
 		this.nextRoom = nextRoom;
 		this.nextPosition = nextPosition;
-		this.ID = ID;
-		this.opened = opened;
+		ID = -1;
+		opened = true;
 	}
 	
 // ImageTile Interface
@@ -45,14 +45,13 @@ public class Door extends GameElement {
 
 	@Override
 	public int getLayer() {
-		return layer;
+		return LAYER;
 	}
 	
 // Only Door
 	
 	public void openDoor() {
 		opened = true;
-		layer = 0;
 	}
 	
 	public int getID() {
