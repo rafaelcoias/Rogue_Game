@@ -55,12 +55,13 @@ public class Engine implements Observer {
 		Room room = new Room(new File("./rooms/room0.txt"));
 		currentRoom = room;
 		addRoom(room);
-		addFloor();/*
+		addFloor();
 		hero = new Hero(new Point2D(1,1), currentRoom);
+		addObjectToGame(hero);
 		createMap(room);
 		gui.setStatusMessage("   ROGUE                           Moves: " 
 				+ turns + "            Score: " + hero.getScore());
-		gui.update();*/
+		gui.update();
 	}
 	
 	// Adds the floor to the game
@@ -79,7 +80,7 @@ public class Engine implements Observer {
 	public static void createMap(Room room) {
 		currentRoom.removeObject(hero);
 		currentRoom = room;
-		addObjectToGame(hero);
+		currentRoom.addObject(hero);
 		try {
 			readMap(room.getFile());
 		} catch (FileNotFoundException e) {
@@ -165,7 +166,7 @@ public class Engine implements Observer {
 
 		if ((win || lose) && checkEndGame(key))
 			return ;
-		if (isTurn(key)) {
+		if (isTurn(key) && !win && !lose) {
 			if (Direction.isDirection(key))
 				hero.moveHero(key);
 			else if (key >= '1' && key <= '9')
@@ -278,17 +279,24 @@ public class Engine implements Observer {
 		if (key == ESCAPE)
 			System.exit(0);
 		else if (key == ENTER) {
-			for (Room r : rooms) {
-				for (GameElement e : r.getObjects())
-					gui.removeImage(e);
-				r.getObjects().clear();
-			}
-			hero.clearItems();
-			gui.removeImage(hero);
-			rooms.clear();
+			resetAll();
 			start();
 		}
 		return key == ENTER;
+	}
+	
+	private void resetAll() {
+		for (Room r : rooms) {
+			for (GameElement e : r.getObjects())
+				gui.removeImage(e);
+			r.getObjects().clear();
+		}
+		gui.removeImages(hero.getItems());
+		hero.clearItems();
+		gui.removeImage(hero);
+		rooms.clear();
+		win = false;
+		lose = false;
 	}
 	
 	private void saveGame() throws FileNotFoundException {
