@@ -23,11 +23,11 @@ If you want to play this game, here are some requierments
   
 Git clone this repository
 
-  git clone git@github.com:rafaelcoias/Rogue_Game.git
+    git clone git@github.com:rafaelcoias/Rogue_Game.git
 
 Then, just open the app you want to run the game on.
 
-Click *run* and thats it!
+Click *run* and have fun!
 
 ## My Grade
 
