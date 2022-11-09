@@ -4,12 +4,10 @@ import pt.iscte.poo.utils.Point2D;
 
 public class Floor extends GameElement {
 
-	private Point2D position;
 	private final static int LAYER = 0;
 
 	public Floor(Point2D position) {
 		super(position, LAYER);
-		this.position = position;
 	}
 
 	@Override
@@ -19,12 +17,12 @@ public class Floor extends GameElement {
 
 	@Override
 	public Point2D getPosition() {
-		return position;
+		return super.getPosition();
 	}
 
 	@Override
 	public int getLayer() {
-		return LAYER;
+		return super.getLayer();
 	}
 
 }

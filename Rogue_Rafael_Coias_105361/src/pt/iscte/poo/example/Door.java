@@ -3,7 +3,7 @@ package pt.iscte.poo.example;
 import pt.iscte.poo.utils.Point2D;
 
 public class Door extends GameElement {
-	private Point2D position;
+	
 	private Room nextRoom;
 	private Point2D nextPosition;
 	
@@ -13,7 +13,6 @@ public class Door extends GameElement {
 	
 	public Door(Point2D position, Room nextRoom, Point2D nextPosition, int ID) {
 		super(position, LAYER);
-		this.position = position;
 		this.nextRoom = nextRoom;
 		this.nextPosition = nextPosition;
 		this.ID = ID;
@@ -22,7 +21,6 @@ public class Door extends GameElement {
 	
 	public Door(Point2D position, Room nextRoom, Point2D nextPosition) {
 		super(position, LAYER);
-		this.position = position;
 		this.nextRoom = nextRoom;
 		this.nextPosition = nextPosition;
 		ID = -1;
@@ -40,12 +38,12 @@ public class Door extends GameElement {
 
 	@Override
 	public Point2D getPosition() {
-		return position;
+		return super.getPosition();
 	}
 
 	@Override
 	public int getLayer() {
-		return LAYER;
+		return super.getLayer();
 	}
 	
 // Only Door

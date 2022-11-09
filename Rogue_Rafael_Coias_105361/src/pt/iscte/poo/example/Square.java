@@ -4,29 +4,31 @@ import pt.iscte.poo.utils.Point2D;
 
 public class Square extends GameElement {
 
-	private Point2D position;
-	private final String NAME;
+	private String name;
 	private final static int LAYER = 0;
 	
 	public Square(Point2D position, String name) {
-		super(position, 0);
-		this.position = position;
-		this.NAME = name;
+		super(position, LAYER);
+		this.name = name;
 	}
 	
 	@Override
 	public String getName() {
-		return NAME;
+		return name;
 	}
 
 	@Override
 	public Point2D getPosition() {
-		return position;
+		return super.getPosition();
 	}
 
 	@Override
 	public int getLayer() {
-		return LAYER;
+		return super.getLayer();
+	}
+	
+	public void setName(String color) {
+		name = color;
 	}
 	
 }

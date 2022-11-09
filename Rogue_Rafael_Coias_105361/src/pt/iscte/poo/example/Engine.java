@@ -22,10 +22,11 @@ public class Engine implements Observer {
 	public static final int ENTER = 10;
 	public static final int ESCAPE = 27;
 	
+	private static EndGame end = null;
 	private static Engine INSTANCE = null;
 	private static ImageMatrixGUI gui = ImageMatrixGUI.getInstance();
 	
-	private String username;
+	private String username = "";
 	private static Hero hero;
 	private int turns;
 	private static boolean win = false;
@@ -40,8 +41,9 @@ public class Engine implements Observer {
 		return INSTANCE;
 	}
 
-	private Engine() {		
-		username = gui.askUser("Enter your name :");
+	private Engine() {
+		while (username.length() == 0)
+			username = gui.askUser("Enter your name :");
 		gui.registerObserver(this);
 		gui.setSize(GRID_WIDTH, GRID_HEIGHT);
 		gui.go();
@@ -117,7 +119,7 @@ public class Engine implements Observer {
 	
 	// Reads the end of the file and adds
 	// every object in its position
-	
+
 	private static void addObjects(Scanner sc) {
 		while (sc.hasNextLine()) {
 			String allLine = sc.nextLine();
@@ -178,8 +180,7 @@ public class Engine implements Observer {
 		}
 		gui.setStatusMessage("   ROGUE                           Moves: " 
 				+ turns + "            Score: " + hero.getScore());
-		gui.addImages(hero.getItems());
-		gui.addImages(hero.getLifeBar());
+		//agui.addImages(hero.getLifeBar());
 		gui.update();
 	}
 	
@@ -267,7 +268,8 @@ public class Engine implements Observer {
 			win = true;
 		else
 			lose = true;
-		gui.addImage(new EndGame(won));
+		end = new EndGame(won);
+		gui.addImage(end);
 	}
 	
 	private boolean checkEndGame(int key) {
@@ -276,8 +278,10 @@ public class Engine implements Observer {
 		} catch (FileNotFoundException e) {
 			System.err.println("Erro na abertura do ficheiro");
 		}
-		if (key == ESCAPE)
+		if (key == ESCAPE) {
+			gui.dispose();
 			System.exit(0);
+		}
 		else if (key == ENTER) {
 			resetAll();
 			start();
@@ -291,16 +295,20 @@ public class Engine implements Observer {
 				gui.removeImage(e);
 			r.getObjects().clear();
 		}
+		gui.removeImage(end);
 		gui.removeImages(hero.getItems());
+		gui.removeImages(hero.getLifeBar());
 		hero.clearItems();
 		gui.removeImage(hero);
 		rooms.clear();
 		win = false;
 		lose = false;
+		end = null;
 	}
 	
 	private void saveGame() throws FileNotFoundException {
-		PrintWriter write = new PrintWriter(new File("./savedGames"));
-		write.println(username + " : " + hero.getScore());
+		PrintWriter write = new PrintWriter(new File("./savedGames.txt"));
+		write.println(username + ":" + hero.getScore());
+		write.close();
 	}
 }

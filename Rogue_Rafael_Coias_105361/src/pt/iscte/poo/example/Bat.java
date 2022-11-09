@@ -5,7 +5,6 @@ import pt.iscte.poo.utils.Vector2D;
 
 public class Bat extends GameElement implements Mob {
 	
-	private Point2D position;
 	private Room room;
 	private int life = 3;
 	
@@ -15,7 +14,6 @@ public class Bat extends GameElement implements Mob {
 	
 	public Bat(Point2D position, Room room) {
 		super(position, LAYER);
-		this.position = position;
 		this.room = room;
 	}
 	
@@ -28,12 +26,12 @@ public class Bat extends GameElement implements Mob {
 
 	@Override
 	public Point2D getPosition() {
-		return position;
+		return super.getPosition();
 	}
 
 	@Override
 	public int getLayer() {
-		return LAYER;
+		return super.getLayer();
 	}
 	
 // Mob Interface	
@@ -42,7 +40,7 @@ public class Bat extends GameElement implements Mob {
 	public void attack(Vector2D moveVector) {
 		if (random(50))
 			return ;
-		Mob mob = (Mob)room.getObject(position.plus(moveVector));
+		Mob mob = (Mob)room.getObject(getPosition().plus(moveVector));
 		mob.setLife(DAMAGE);
 		setLife(1);
 		if (mob.getLife() > 0)
@@ -54,13 +52,13 @@ public class Bat extends GameElement implements Mob {
 	public void move(Vector2D v) {
 		GameElement e = room.getObject(getPosition().plus(v));
 		if (random(50) && (e == null || (canMove(e) && !e.getName().equals("DoorClosed") && !e.getName().equals("DoorOpen")))) {
-			position = position.plus(v);
+			setPosition(getPosition().plus(v));
 			return ;
 		}
 		Vector2D randomVector = randomVector();
 		e = room.getObject(getPosition().plus(randomVector));
 		if (e == null || (canMove(e) && !e.getName().equals("DoorClosed") && !e.getName().equals("DoorOpen")))
-			position = position.plus(randomVector);
+			setPosition(getPosition().plus(randomVector));
 	}
 	
 	@Override

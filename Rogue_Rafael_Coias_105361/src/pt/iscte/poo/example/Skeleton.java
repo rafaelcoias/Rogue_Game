@@ -4,7 +4,7 @@ import pt.iscte.poo.utils.Point2D;
 import pt.iscte.poo.utils.Vector2D;
 
 public class Skeleton extends GameElement implements Mob {
-	private Point2D position;
+	
 	private Room room;
 	private int life = 5;
 	
@@ -16,7 +16,6 @@ public class Skeleton extends GameElement implements Mob {
 	
 	public Skeleton(Point2D position, Room room) {
 		super(position, LAYER);
-		this.position = position;
 		this.room = room;
 	}
 	
@@ -29,19 +28,19 @@ public class Skeleton extends GameElement implements Mob {
 
 	@Override
 	public Point2D getPosition() {
-		return position;
+		return super.getPosition();
 	}
 
 	@Override
 	public int getLayer() {
-		return LAYER;
+		return super.getLayer();
 	}
 	
 // Mob Interface
 	
 	@Override
 	public void attack(Vector2D moveVector) {
-		Mob mob = (Mob)room.getObject(position.plus(moveVector));
+		Mob mob = (Mob)room.getObject(getPosition().plus(moveVector));
 		mob.setLife(DAMAGE);
 		if (mob.getLife() > 0)
 			return ;
@@ -55,7 +54,7 @@ public class Skeleton extends GameElement implements Mob {
 			return ;
 		}
 		move = false;
-		position = position.plus(v);
+		setPosition(getPosition().plus(v));
 	}
 	
 	@Override
