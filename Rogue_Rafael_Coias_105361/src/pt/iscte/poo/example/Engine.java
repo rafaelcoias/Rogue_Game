@@ -3,6 +3,9 @@ package pt.iscte.poo.example;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import javax.swing.JOptionPane;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -26,18 +29,18 @@ public class Engine implements Observer {
 	public static final int ESCAPE = 27;
 	
 	// Game
-	private static EndGame end = null;
 	private static Engine INSTANCE = null;
 	private static ImageMatrixGUI gui = ImageMatrixGUI.getInstance();
 	
 	// Hero
 	private static String username = "";
 	private static Hero hero;
-	private int turns;
+	private static int turns;
 	
 	// End Game
+	private static String[] endOptions = {"Play Again", "Exit"};
 	private static boolean win = false;
-	private static boolean lose = false;
+	private static boolean ended = false;
 	
 	// Game Rooms
 	private static Room currentRoom;
@@ -74,8 +77,8 @@ public class Engine implements Observer {
 		hero = new Hero(new Point2D(1,1), currentRoom);
 		addObjectToGame(hero);
 		createMap(room);
-		gui.setStatusMessage("   ROGUE                           Moves: " 
-				+ turns + "            Score: " + hero.getScore());
+		gui.setStatusMessage("  Moves: " + turns + "                                                                                     "
+				+ "Score: " + hero.getScore());
 		gui.update();
 	}
 	
@@ -183,26 +186,27 @@ public class Engine implements Observer {
 	public void update(Observed source) {
 		int key = ((ImageMatrixGUI) source).keyPressed();
 
-		if ((win || lose) && checkEndGame(key))
-			return ;
-		if (isTurn(key) && !win && !lose) {
+		if (isTurn(key) && !ended) {
 			if (Direction.isDirection(key))
 				hero.moveHero(key);
 			else if (key >= '1' && key <= '9')
 				hero.dropItem(key);
 			else if (key == 'h' || key == 'H')
 				hero.heal();
+			else if (key == ESCAPE)
+				System.exit(0);
 			moveMobs();
 			turns++;
 		}
-		gui.setStatusMessage("   ROGUE                           Moves: " 
-				+ turns + "            Score: " + hero.getScore());
-		//agui.addImages(hero.getLifeBar());
+		gui.setStatusMessage("  Moves: " + turns + "                                                                                     "
+				+ "Score: " + hero.getScore());
+		if (ended)
+			checkEndGame();
 		gui.update();
 	}
 	
 	private boolean isTurn(int key) {
-		return Direction.isDirection(key) || (key >= '1' && key <= '3') || key == 'h' || key == 'H';
+		return Direction.isDirection(key) || (key >= '1' && key <= '9') || key == 'h' || key == 'H' || key == ESCAPE;
 	}
 	
 	// Move every enemy (if they can)
@@ -291,16 +295,15 @@ public class Engine implements Observer {
 		rooms.add(room);
 	}
 	
+// Game's end
+	
 	// Ends the game when hero dies or when it finds the treasure
 	// and tries to save the game statistics
 	
 	public static void endGame(boolean won) {
 		if (won)
 			win = true;
-		else
-			lose = true;
-		end = new EndGame(won);
-		gui.addImage(end);
+		ended = true;
 		try {
 			saveGame();
 		} catch (FileNotFoundException e) {
@@ -313,27 +316,26 @@ public class Engine implements Observer {
 	// Enter - retry
 	// Escape - exit
 	
-	private boolean checkEndGame(int key) {
-		if (key == ESCAPE) {
+	private void checkEndGame() {
+		boolean exit = JOptionPane.showOptionDialog(null, "Choose an option, " + username + " :", win == true ? "You Won!" : "Game Over", 0, 3, null, endOptions, null) == 0 ? false : true;
+		if (exit) {
 			gui.dispose();
 			System.exit(0);
 		}
-		else if (key == ENTER) {
+		else {
 			resetAll();
 			start();
 		}
-		return key == ENTER;
 	}
 	
 	// Resets all game statistics and objects
 	
-	private void resetAll() {
+	private static void resetAll() {
 		for (Room r : rooms) {
 			for (GameElement e : r.getObjects())
 				gui.removeImage(e);
 			r.getObjects().clear();
 		}
-		gui.removeImage(end);
 		gui.removeImages(hero.getItems());
 		gui.removeImages(hero.getLifeBar());
 		hero.clearItems();
@@ -342,8 +344,7 @@ public class Engine implements Observer {
 		rooms.clear();
 		turns = 0;
 		win = false;
-		lose = false;
-		end = null;
+		ended = false;
 	}
 	
 	// Saves the game and sorts the 5 games with the best score
