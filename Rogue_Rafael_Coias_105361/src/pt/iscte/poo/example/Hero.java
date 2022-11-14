@@ -18,9 +18,9 @@ public class Hero extends GameElement implements Mob {
 	private final static int SWORD = 2;
 	private final static int DAMAGE = -1;
 	private final static int LAYER = 2;
+	private final static int CAPACITY = 3;
 	
-	private ArrayList<Item> itemsBar = new ArrayList<>();
-	private final int CAPACITY = 3;
+	private ArrayList<GameElement> itemsBar = new ArrayList<>();
 	private int items = 0;
 	
 	private ArrayList<Square> lifeBar = new ArrayList<>();
@@ -103,7 +103,9 @@ public class Hero extends GameElement implements Mob {
 
 	// Checks if the hero can move.
 	// Then, if there is a monster in the direction moved to,
-	// the hero attacks it, if not the hero just move
+	// the hero attacks it;
+	// If there is an item, picks it;
+	// 
 
 	public void moveHero(int key) {
 		Direction move = Direction.directionFor(key);
@@ -116,7 +118,7 @@ public class Hero extends GameElement implements Mob {
 		else if (objInFront.getLayer() == getLayer())
 			attack(moveVector);
 		else if (objInFront.getLayer() == 1 && items < CAPACITY)
-			pickItem((Item)objInFront, moveVector);
+			pickItem(objInFront, moveVector);
 		else if (objInFront.getName().equals("DoorOpen"))
 			moveToNextRoom((Door)objInFront);
 		else if (objInFront.getName().equals("DoorClosed")) {
@@ -127,6 +129,8 @@ public class Hero extends GameElement implements Mob {
 		else if (canMove(objInFront) && !isMapLimit(moveVector))
 			move(moveVector);
 	}
+	
+	// Checks if the hero moves to the map edge
 	
 	private boolean isMapLimit(Vector2D v) {
 		Point2D p = getPosition().plus(v);
@@ -141,14 +145,13 @@ public class Hero extends GameElement implements Mob {
 	// put it on the items bar
 	// Increments number of current items
 	
-	private void pickItem(Item i, Vector2D v) {
+	private void pickItem(GameElement item, Vector2D v) {
 		move(v);
-		GameElement e = (GameElement)i;
-		e.setPosition(new Point2D(items, Engine.GRID_HEIGHT - 2));
-		itemsBar.add(items, i);
-		room.removeObject(e);
+		item.setPosition(new Point2D(items, Engine.GRID_HEIGHT - 2));
+		itemsBar.add(items, item);
+		room.removeObject(item);
 		items++;
-		if (i.getName().equals("Treasure")) {
+		if (item.getName().equals("Treasure")) {
 			score += 100;
 			Engine.endGame(true);
 		}
@@ -166,11 +169,10 @@ public class Hero extends GameElement implements Mob {
 		index = index - '1';
 		if (index >= items)
 			 return ;
-		Item i = itemsBar.get(index);
-		GameElement e = (GameElement)i;
-		e.setPosition(getPosition());
+		GameElement item = itemsBar.get(index);
+		item.setPosition(getPosition());
 		itemsBar.remove(index);
-		room.addObject(e);
+		room.addObject(item);
 		sortItemsBar(index);
 		items--;
 	}
@@ -182,14 +184,13 @@ public class Hero extends GameElement implements Mob {
 	// Decrements the number of current items
 	
 	public void heal() {
-		for (Item i : itemsBar) {
-			if (i.getName().equals("HealingPotion")) {
-				HealingPotion p = (HealingPotion)i;
-				int index = itemsBar.indexOf(i);
+		for (GameElement item : itemsBar) {
+			if (item.getName().equals("HealingPotion")) {
+				HealingPotion p = (HealingPotion)item;
+				int index = itemsBar.indexOf(item);
 				setLife(p.getHeal());
-				GameElement e = (GameElement)i;
-				Engine.removeObject(e);
-				itemsBar.remove(i);
+				Engine.removeObject(item);
+				itemsBar.remove(item);
 				sortItemsBar(index);
 				items--;
 				break ;
@@ -200,23 +201,21 @@ public class Hero extends GameElement implements Mob {
 	// Sorts item bar by moving every item to the left
 	
 	private void sortItemsBar(int index) {
-		for (int i = 0; i != items - 1; i++) {
-			Item item = itemsBar.get(i);
-			GameElement e = (GameElement)item;
-			e.setPosition(new Point2D(i, Engine.GRID_HEIGHT - 2));
-		}
+		for (int i = 0; i != items - 1; i++)
+			itemsBar.get(i).setPosition(new Point2D(i, Engine.GRID_HEIGHT - 2));
 	}
 	
 	private boolean hasKey(Door door) {
 		if  (door.getID() == -1)
 			return true;
-		for (Item i : itemsBar) {
-			if (i.getName().equals("Key")) {
-				Key k = (Key)i;
+		for (GameElement item : itemsBar) {
+			if (item.getName().equals("Key")) {
+				Key k = (Key)item;
 				if (k.getID() == door.getID()) {
-					itemsBar.remove(i);
+					itemsBar.remove(item);
+					sortItemsBar(itemsBar.indexOf(item));
 					items--;
-					Engine.removeObject((ImageTile)i);
+					Engine.removeObject(item);
 					return true;
 				}	
 			}
@@ -225,15 +224,15 @@ public class Hero extends GameElement implements Mob {
 	}
 	
 	private int hasSword() {
-		for (Item i : itemsBar)
-			if (i.getName().equals("Sword"))
+		for (GameElement item : itemsBar)
+			if (item.getName().equals("Sword"))
 				return SWORD;
 		return 1;
 	}
 	
 	private boolean hasArmor() {
-		for (Item i : itemsBar)
-			if (i.getName().equals("Armor"))
+		for (GameElement item : itemsBar)
+			if (item.getName().equals("Armor"))
 				return true;
 		return false;
 	}
@@ -241,7 +240,8 @@ public class Hero extends GameElement implements Mob {
 	// Move hero to the Room "room"
 	// If there isn't any Room like "room" it adds it
 	// to the list of rooms in the Engine and then
-	// moves the hero into it
+	// moves the hero into it.
+	// Opens the next room's door
 	
 	public void moveToNextRoom(Door d) {
 		Engine.clearObjects(room);
@@ -249,24 +249,30 @@ public class Hero extends GameElement implements Mob {
 			Engine.addRoom(d.getNextRoom());
 			Engine.createMap(d.getNextRoom());
 			score += 10;
-			Door door = (Door)d.getNextRoom().getObject(d.getNextPosition());
-			door.openDoor();
 		} 
 		else
 			Engine.reDoMap(d.getNextRoom());
+		Door door = (Door)Engine.getRoom(d.getNextRoom()).getObject(d.getNextPosition());
+		door.openDoor();
 		room.removeObject(this);
 		room = Engine.getCurrentRoom();
 		setPosition(d.getNextPosition());
 	}
 	
-	// Set current room
+	// Set the current room
 	
 	public void setRoom(Room room) {
 		this.room = room;
 	}
 	
+// Resets
+	
 	public void clearItems() {
 		itemsBar.clear();
+	}
+	
+	public void resetScore() {
+		score = 0;
 	}
 	
 // Get Functions
@@ -284,8 +290,8 @@ public class Hero extends GameElement implements Mob {
 	
 	public ArrayList<ImageTile> getItems() {
 		ArrayList<ImageTile> list = new ArrayList<>();
-		for (Item i : itemsBar)
-			list.add((ImageTile)i);
+		for (GameElement item : itemsBar)
+			list.add((ImageTile)item);
 		return list;
 	}	 
 }

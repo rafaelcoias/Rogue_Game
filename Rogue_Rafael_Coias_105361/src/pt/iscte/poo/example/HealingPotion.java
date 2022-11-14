@@ -2,7 +2,7 @@ package pt.iscte.poo.example;
 
 import pt.iscte.poo.utils.Point2D;
 
-public class HealingPotion extends GameElement implements Item {
+public class HealingPotion extends GameElement {
 	
 	private final static int LAYER = 1;
 	private final int HEAL = 5;

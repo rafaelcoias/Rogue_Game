@@ -31,8 +31,7 @@ public class Room {
 		return objects;
 	}
 	
-	// Finds the Object that has the position p
-	// and returns it
+	// Returns the Object which is at the position p
 	
 	public GameElement getObject(Point2D p) {
 		for (GameElement e : objects)

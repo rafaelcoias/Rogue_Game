@@ -68,7 +68,7 @@ public class Bat extends GameElement implements Mob {
 	
 	@Override
 	public void setLife(int DAMAGE) {
-		if (DAMAGE > 0 && getLife() == 3)
+		if (DAMAGE > 0 && getLife() >= 3)
 			return ;
 		life = life + DAMAGE;
 	}

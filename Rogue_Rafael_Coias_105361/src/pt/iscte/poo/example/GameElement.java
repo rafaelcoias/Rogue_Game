@@ -27,10 +27,11 @@ public abstract class GameElement implements ImageTile {
 		return LAYER;
 	}
 	
-	// Returns a Random number between 1 - 100
+	// Creates a Random number between 1 - 100 and
+	// returns true if it is between 1 - percentage
 	
-	public boolean random(int perc) {
-		return (int)(Math.random() * 100) + 1 <= perc ? true : false;
+	public boolean random(int percentage) {
+		return (int)(Math.random() * 100) + 1 <= percentage ? true : false;
 	}
 	
 	// Returns a Random Vector 

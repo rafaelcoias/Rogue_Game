@@ -17,23 +17,33 @@ import pt.iscte.poo.utils.Vector2D;
 
 public class Engine implements Observer {
 
+// Attributes
+	
+	// Constants
 	public static final int GRID_HEIGHT = 12;
 	public static final int GRID_WIDTH = 10;
 	public static final int ENTER = 10;
 	public static final int ESCAPE = 27;
 	
+	// Game
 	private static EndGame end = null;
 	private static Engine INSTANCE = null;
 	private static ImageMatrixGUI gui = ImageMatrixGUI.getInstance();
 	
-	private String username = "";
+	// Hero
+	private static String username = "";
 	private static Hero hero;
 	private int turns;
+	
+	// End Game
 	private static boolean win = false;
 	private static boolean lose = false;
 	
+	// Game Rooms
 	private static Room currentRoom;
 	private static List<Room> rooms = new ArrayList<>();
+	
+// Project
 	
 	public static Engine getInstance() {
 		if (INSTANCE == null)
@@ -42,8 +52,11 @@ public class Engine implements Observer {
 	}
 
 	private Engine() {
-		while (username.length() == 0)
+		while (username.length() == 0) {
 			username = gui.askUser("Enter your name :");
+			if (username == null)
+				return ;
+		}
 		gui.registerObserver(this);
 		gui.setSize(GRID_WIDTH, GRID_HEIGHT);
 		gui.go();
@@ -149,10 +162,14 @@ public class Engine implements Observer {
 		}
 	}
 	
+	// Adds object to the game and to the object list
+	
 	private static void addObjectToGame(GameElement e) {
 		currentRoom.addObject(e);
 		gui.addImage(e);
 	}
+	
+	// Returns a room file
 	
 	private static File doFile(String name) {
 		return new File ("./rooms/" + name + ".txt");
@@ -193,7 +210,7 @@ public class Engine implements Observer {
 	
 	private void moveMobs() {
 		for (GameElement e : currentRoom.getObjects()) {
-			if (e.getLayer() == 2 && !e.getName().equals(hero.getName())) {
+			if (isMob(e) && !e.getName().equals(hero.getName())) {
 				Vector2D moveVector = e.getPosition().vectorTo(hero.getPosition());
 				GameElement objInFront = currentRoom.getObject(e.getPosition().plus(moveVector));
 				Mob mob = (Mob)e;
@@ -207,22 +224,17 @@ public class Engine implements Observer {
 		}
 	}
 	
-// Static References	
+	private boolean isMob(GameElement e) {
+		return e.getLayer() == 2;
+	}
 	
-	//	Re do the existing room
+// Static References	
 	
 	public static void reDoMap(Room room) {
 		currentRoom = rooms.get(getRoomIndex(room));
 		for (GameElement e : currentRoom.getObjects())
 			gui.addImage(e);
 		currentRoom.addObject(hero);
-	}
-	
-	private static int getRoomIndex(Room room) {
-		for (Room r : rooms)
-			if (r.getFile().equals(room.getFile()))
-				return rooms.indexOf(r);
-		return -1;
 	}
 	
 	// Remove object from the game and from the Object List
@@ -240,7 +252,25 @@ public class Engine implements Observer {
 				gui.removeImage(e);
 	}
 	
-	// Get the current room
+	// Returns the index of a certain room
+	
+	private static int getRoomIndex(Room room) {
+		for (Room r : rooms)
+			if (r.getFile().equals(room.getFile()))
+				return rooms.indexOf(r);
+		return -1;
+	}
+	
+	// Returns a certain Room
+	
+	public static Room getRoom(Room room) {
+		for (Room r : rooms)
+			if (r.getFile().getName().equals(room.getFile().getName()))
+				return r;
+		return null;
+	}
+	
+	// Returns the current room
 	
 	public static Room getCurrentRoom() {
 		return currentRoom;
@@ -262,6 +292,7 @@ public class Engine implements Observer {
 	}
 	
 	// Ends the game when hero dies or when it finds the treasure
+	// and tries to save the game statistics
 	
 	public static void endGame(boolean won) {
 		if (won)
@@ -270,14 +301,19 @@ public class Engine implements Observer {
 			lose = true;
 		end = new EndGame(won);
 		gui.addImage(end);
-	}
-	
-	private boolean checkEndGame(int key) {
 		try {
 			saveGame();
 		} catch (FileNotFoundException e) {
 			System.err.println("Erro na abertura do ficheiro");
 		}
+	}
+	
+	// Checks if the game the user clicks ENTER
+	// or ESCAPE :
+	// Enter - retry
+	// Escape - exit
+	
+	private boolean checkEndGame(int key) {
 		if (key == ESCAPE) {
 			gui.dispose();
 			System.exit(0);
@@ -288,6 +324,8 @@ public class Engine implements Observer {
 		}
 		return key == ENTER;
 	}
+	
+	// Resets all game statistics and objects
 	
 	private void resetAll() {
 		for (Room r : rooms) {
@@ -300,15 +338,27 @@ public class Engine implements Observer {
 		gui.removeImages(hero.getLifeBar());
 		hero.clearItems();
 		gui.removeImage(hero);
+		hero.resetScore();
 		rooms.clear();
+		turns = 0;
 		win = false;
 		lose = false;
 		end = null;
 	}
 	
-	private void saveGame() throws FileNotFoundException {
+	// Saves the game and sorts the 5 games with the best score
+	
+	private static void saveGame() throws FileNotFoundException {
+		ArrayList<String> info = new ArrayList<>();
+		Scanner sc = new Scanner(new File("./savedGames.txt"));
+		while (sc.hasNextLine())
+			info.add(sc.nextLine());
+		sc.close();
+		info.add(username + ":" + hero.getScore());
+		info.sort((s1, s2) -> Integer.parseInt(s2.split(":")[1]) - Integer.parseInt(s1.split(":")[1]));
 		PrintWriter write = new PrintWriter(new File("./savedGames.txt"));
-		write.println(username + ":" + hero.getScore());
+		for (int i = 0; i != info.size() && i != 5; i++)
+			write.println(info.get(i));
 		write.close();
 	}
 }
