@@ -10,6 +10,9 @@ public class Room {
 	
 	private File file;
 	private List<GameElement> objects = new ArrayList<>();
+//	private List<Mob> mobs = new ArrayList<>();
+//	private List<Item> items = new ArrayList<>();
+//	private List<Imovel> wall = new ArrayList<>();
 	
 	public Room(File file) {
 		this.file = file;

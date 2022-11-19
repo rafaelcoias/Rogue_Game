@@ -2,7 +2,7 @@ package pt.iscte.poo.example;
 
 import pt.iscte.poo.utils.Point2D;
 
-public class Wall  extends GameElement {
+public class Wall  extends GameElement implements Imovel {
 
 	private final static int LAYER = 3;
 

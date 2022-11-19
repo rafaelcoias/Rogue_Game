@@ -86,7 +86,7 @@ public class ImageMatrixGUI extends Observed {
     private int maxLevel;
 
     private ImageMatrixGUI() {
-        SQUARE_SIZE = 50;
+        SQUARE_SIZE = 100;
         init();
     }
 

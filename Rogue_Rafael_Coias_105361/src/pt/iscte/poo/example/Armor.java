@@ -2,7 +2,7 @@ package pt.iscte.poo.example;
 
 import pt.iscte.poo.utils.Point2D;
 
-public class Armor extends GameElement {
+public class Armor extends GameElement implements Item {
 
 	private final static int LAYER = 1;
 	

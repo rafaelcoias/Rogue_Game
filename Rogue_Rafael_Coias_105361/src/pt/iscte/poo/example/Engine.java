@@ -9,6 +9,8 @@ import javax.swing.JOptionPane;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import pt.iscte.poo.gui.ImageMatrixGUI;
 import pt.iscte.poo.gui.ImageTile;
@@ -347,17 +349,33 @@ public class Engine implements Observer {
 		ended = false;
 	}
 	
-	// Saves the game and sorts the 5 games with the best score
+	// Saves the game and sorts the 5 games with the best score.
+	// Compares the score with a lambda expression.
 	
 	private static void saveGame() throws FileNotFoundException {
+		ArrayList<String> info = readFile();
+		DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+		LocalDateTime localDate = LocalDateTime.now();
+		info.add(username + " " + hero.getScore() + " " + date.format(localDate));
+		info.sort((s1, s2) -> Integer.parseInt(s2.split(" ")[1]) - Integer.parseInt(s1.split(" ")[1]));
+		writeToFile(info);
+	}
+	
+	private static ArrayList<String> readFile() throws FileNotFoundException {
 		ArrayList<String> info = new ArrayList<>();
-		Scanner sc = new Scanner(new File("./savedGames.txt"));
+		Scanner sc = new Scanner(new File("./saveGames.txt"));
+		sc.nextLine();
+		sc.nextLine();
 		while (sc.hasNextLine())
 			info.add(sc.nextLine());
 		sc.close();
-		info.add(username + ":" + hero.getScore());
-		info.sort((s1, s2) -> Integer.parseInt(s2.split(":")[1]) - Integer.parseInt(s1.split(":")[1]));
-		PrintWriter write = new PrintWriter(new File("./savedGames.txt"));
+		return info;
+	}
+	
+	private static void writeToFile(ArrayList<String> info) throws FileNotFoundException {
+		PrintWriter write = new PrintWriter(new File("./saveGames.txt"));
+		write.println("USERNAME - SCORE - DATE");
+		write.println();
 		for (int i = 0; i != info.size() && i != 5; i++)
 			write.println(info.get(i));
 		write.close();

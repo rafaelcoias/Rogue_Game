@@ -16,7 +16,7 @@ public class Hero extends GameElement implements Mob {
 	
 	private final static int MAXLIFE = 10;
 	private final static int SWORD = 2;
-	private final static int DAMAGE = -1;
+	private final static int DAMAGE = -10;
 	private final static int LAYER = 2;
 	private final static int CAPACITY = 3;
 	
@@ -63,7 +63,7 @@ public class Hero extends GameElement implements Mob {
 	
 	@Override
 	public boolean canMove(GameElement e) {
-		return e.getLayer() < getLayer();
+		return true;
 	}
 
 	@Override
@@ -113,11 +113,11 @@ public class Hero extends GameElement implements Mob {
 		GameElement objInFront = room.getObject(getPosition().plus(moveVector));
 		if (isMapLimit(moveVector))
 			return ;
-		if (objInFront == null && !isMapLimit(moveVector))
+		if (isFloor(objInFront))
 			move(moveVector);
 		else if (objInFront.getLayer() == getLayer())
 			attack(moveVector);
-		else if (objInFront.getLayer() == 1 && items < CAPACITY)
+		else if (objInFront.getLayer() == 1)
 			pickItem(objInFront, moveVector);
 		else if (objInFront.getName().equals("DoorOpen"))
 			moveToNextRoom((Door)objInFront);
@@ -126,8 +126,12 @@ public class Hero extends GameElement implements Mob {
 			if (hasKey(door))
 				door.openDoor();
 		}
-		else if (canMove(objInFront) && !isMapLimit(moveVector))
-			move(moveVector);
+	}
+	
+	// Checks if the object to move to is floor
+	
+	private boolean isFloor(GameElement e) {
+		return e == null;
 	}
 	
 	// Checks if the hero moves to the map edge
@@ -147,6 +151,8 @@ public class Hero extends GameElement implements Mob {
 	
 	private void pickItem(GameElement item, Vector2D v) {
 		move(v);
+		if (items == CAPACITY)
+			return ;
 		item.setPosition(new Point2D(items, Engine.GRID_HEIGHT - 2));
 		itemsBar.add(items, item);
 		room.removeObject(item);
