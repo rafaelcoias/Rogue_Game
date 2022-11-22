@@ -333,7 +333,7 @@ public class Engine implements Observer {
 	private void checkEndGame() {
 		boolean exit;
 		if (win)
-			exit = JOptionPane.showOptionDialog(null, "Congratulations, " + username + "\nYour Score : " + hero.getScore(),"You Won!", 0, 3, null, endOptions, null) == 0 ? false : true;
+			exit = JOptionPane.showOptionDialog(null, "Congratulations, " + username + "\nYour Score : " + hero.getScore(),"You Won", 0, 3, null, endOptions, null) == 0 ? false : true;
 		else
 			exit = JOptionPane.showOptionDialog(null, "Nice try, " + username + "\nYour Score : " + hero.getScore(), "Game Over", 0, 3, null, endOptions, null) == 0 ? false : true;
 		if (exit)
