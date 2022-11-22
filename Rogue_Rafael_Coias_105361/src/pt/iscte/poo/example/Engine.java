@@ -39,7 +39,7 @@ public class Engine implements Observer {
 	private static Hero hero;
 	private static int turns;
 	
-	// End Game
+	// Game Menus
 	private static String[] endOptions = {"Play Again", "Exit"};
 	private static boolean win = false;
 	private static boolean ended = false;
@@ -297,6 +297,18 @@ public class Engine implements Observer {
 		rooms.add(room);
 	}
 	
+	// Get Username
+	
+	public static String getUsername() {
+		return username;
+	}
+	
+	// Set Username
+	
+	public static void setUsername(String user) {
+		username = user;
+	}
+	
 // Game's end
 	
 	// Ends the game when hero dies or when it finds the treasure
@@ -319,11 +331,13 @@ public class Engine implements Observer {
 	// Escape - exit
 	
 	private void checkEndGame() {
-		boolean exit = JOptionPane.showOptionDialog(null, "Choose an option, " + username + " :", win == true ? "You Won!" : "Game Over", 0, 3, null, endOptions, null) == 0 ? false : true;
-		if (exit) {
+		boolean exit;
+		if (win)
+			exit = JOptionPane.showOptionDialog(null, "Congratulations, " + username + "\nYour Score : " + hero.getScore(),"You Won!", 0, 3, null, endOptions, null) == 0 ? false : true;
+		else
+			exit = JOptionPane.showOptionDialog(null, "Nice try, " + username + "\nYour Score : " + hero.getScore(), "Game Over", 0, 3, null, endOptions, null) == 0 ? false : true;
+		if (exit)
 			gui.dispose();
-			System.exit(0);
-		}
 		else {
 			resetAll();
 			start();
