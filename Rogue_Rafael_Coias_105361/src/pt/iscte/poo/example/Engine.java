@@ -79,8 +79,7 @@ public class Engine implements Observer {
 		hero = new Hero(new Point2D(1,1), currentRoom);
 		addObjectToGame(hero);
 		createMap(room);
-		gui.setStatusMessage("  Moves: " + turns + "                                                                                     "
-				+ "Score: " + hero.getScore());
+		gui.setStatusMessage(" Moves:  " + turns + "  |  "+ "Score:  " + hero.getScore());
 		gui.update();
 	}
 	
@@ -152,6 +151,10 @@ public class Engine implements Observer {
 				addObjectToGame(new Bat(new Point2D(i, j), currentRoom));
 			else if (object.equals("Thug"))
 				addObjectToGame(new Thug(new Point2D(i, j), currentRoom));
+			else if (object.equals("Thief"))
+				addObjectToGame(new Thief(new Point2D(i, j), currentRoom));
+			else if (object.equals("Scorpio"))
+				addObjectToGame(new Scorpio(new Point2D(i, j), currentRoom));
 			else if (object.equals("Armor"))
 				addObjectToGame(new Armor(new Point2D(i, j)));
 			else if (object.equals("HealingPotion"))
@@ -195,36 +198,36 @@ public class Engine implements Observer {
 				hero.dropItem(key);
 			else if (key == 'h' || key == 'H')
 				hero.heal();
-			else if (key == ESCAPE)
-				System.exit(0);
 			moveMobs();
+			if (hero.isPoisened())
+				hero.setLife(-1);
 			turns++;
 		}
-		gui.setStatusMessage("  Moves: " + turns + "                                                                                     "
-				+ "Score: " + hero.getScore());
+		gui.setStatusMessage(" Moves:  " + turns + "  |  "+ "Score:  " + hero.getScore());
 		if (ended)
 			checkEndGame();
 		gui.update();
 	}
 	
 	private boolean isTurn(int key) {
-		return Direction.isDirection(key) || (key >= '1' && key <= '9') || key == 'h' || key == 'H' || key == ESCAPE;
+		return Direction.isDirection(key) || (key >= '1' && key <= '9') || key == 'h' || key == 'H';
 	}
 	
 	// Move every enemy (if they can)
 	// If the hero is in front of them, it attacks
+	// Bat always moves (if a wall is in front of it, moves to random direction)
 	
 	private void moveMobs() {
 		for (GameElement e : currentRoom.getObjects()) {
-			if (isMob(e) && !e.getName().equals(hero.getName())) {
+			if (isMob(e) && !(e instanceof Hero)) {
 				Vector2D moveVector = e.getPosition().vectorTo(hero.getPosition());
 				GameElement objInFront = currentRoom.getObject(e.getPosition().plus(moveVector));
 				Mob mob = (Mob)e;
-				if (objInFront == null || (mob.canMove(objInFront) && !objInFront.getName().equals("DoorClosed") && !objInFront.getName().equals("DoorOpen")))
+				if (objInFront == null || (mob.canMove(objInFront) && !(e instanceof Door)))
 					mob.move(moveVector);
 				else if (objInFront.getName().equals(hero.getName()))
 					mob.attack(moveVector);
-				else if (e.getName().equals("Bat"))
+				else if (e instanceof Bat)
 					mob.move(moveVector);
 			}
 		}
@@ -250,11 +253,16 @@ public class Engine implements Observer {
 		currentRoom.removeObject((GameElement)e);
 	}
 	
+	public static void addObject(GameElement e) {
+		gui.addImage(e);
+		currentRoom.addObject((GameElement)e);
+	}
+	
 	// Clear Every object in the game
 	
 	public static void clearObjects(Room room) {
 		for (GameElement e : room.getObjects())
-			if (!e.getName().equals("Hero"))
+			if (!(e instanceof Hero))
 				gui.removeImage(e);
 	}
 	

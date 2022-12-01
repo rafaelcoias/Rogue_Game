@@ -13,11 +13,11 @@ public class Hero extends GameElement implements Mob {
 
 	private int life;
 	private int score = 0;
+	private boolean poisened = false;
 	
 	private final static int MAXLIFE = 10;
 	private final static int SWORD = 2;
-	private final static int DAMAGE = -10;
-	private final static int LAYER = 2;
+	private final static int DAMAGE = -2;
 	private final static int CAPACITY = 3;
 	
 	private ArrayList<GameElement> itemsBar = new ArrayList<>();
@@ -26,35 +26,14 @@ public class Hero extends GameElement implements Mob {
 	private ArrayList<Square> lifeBar = new ArrayList<>();
 
 	public Hero(Point2D position, Room room) {
-		super(position, LAYER);
+		super(position, LAYER, "Hero");
 		for (int i = 0; i != Engine.GRID_WIDTH; i++)
 			lifeBar.add(new Square(new Point2D(i, Engine.GRID_HEIGHT - 1), "Green"));
 		this.room = room;
 		life = MAXLIFE;
 	}
 	
-	
-// ImageTile Interface
-	
-
-	@Override
-	public String getName() {
-		return "Hero";
-	}
-	
-	@Override
-	public Point2D getPosition() {
-		return super.getPosition();
-	}
-
-	@Override
-	public int getLayer() {
-		return super.getLayer();
-	}
-
-	
 // Mob Interface
-	
 	
 	@Override
 	public void move(Vector2D v) {
@@ -76,6 +55,8 @@ public class Hero extends GameElement implements Mob {
 			lifeBar.get(i).setName("Green");
 		for (int i = life; i != MAXLIFE; i++)
 			lifeBar.get(i).setName("Red");
+		if (getLife() <= 0)
+			Engine.endGame(false);
 	}
 	
 	@Override
@@ -89,7 +70,9 @@ public class Hero extends GameElement implements Mob {
 		mob.setLife(DAMAGE * hasSword());
 		if (mob.getLife() > 0)
 			return ;
-		Engine.removeObject(room.getObject(getPosition().plus(moveVector)));
+		if (((GameElement)mob) instanceof Thief)
+			((Thief)mob).dropItems();
+		Engine.removeObject((GameElement)mob);
 		score += mob.getKillValue();
 	}
 	
@@ -115,22 +98,18 @@ public class Hero extends GameElement implements Mob {
 			return ;
 		if (isFloor(objInFront))
 			move(moveVector);
-		else if (objInFront.getLayer() == getLayer())
+		else if (objInFront instanceof Mob)
 			attack(moveVector);
-		else if (objInFront.getLayer() == 1)
-			pickItem(objInFront, moveVector);
-		else if (objInFront.getName().equals("DoorOpen"))
+		else if (objInFront instanceof Item)
+			pickItem(objInFront.getPosition(), moveVector);
+		else if (objInFront instanceof Door && ((Door)objInFront).isOpen())
 			moveToNextRoom((Door)objInFront);
-		else if (objInFront.getName().equals("DoorClosed")) {
-			Door door = (Door)objInFront;
-			if (hasKey(door))
-				door.openDoor();
-		}
+		else if (objInFront instanceof Door && !((Door)objInFront).isOpen())
+			if (hasKey((Door)objInFront))
+				((Door)objInFront).openDoor();
 	}
 	
-	// Checks if the object to move to is floor
-	
-	private boolean isFloor(GameElement e) {
+	public boolean isFloor(GameElement e) {
 		return e == null;
 	}
 	
@@ -143,24 +122,27 @@ public class Hero extends GameElement implements Mob {
 		return false;
 	}
 	
-	// Picks an Object and checks if it is a
-	// Sword or an Armor.
+	// Picks all Object on that position.
 	// It changes the position of the object to
 	// put it on the items bar
 	// Increments number of current items
+	// If it picks the treasure, wins the game
 	
-	private void pickItem(GameElement item, Vector2D v) {
-		move(v);
-		if (items == CAPACITY)
-			return ;
-		item.setPosition(new Point2D(items, Engine.GRID_HEIGHT - 2));
-		itemsBar.add(items, item);
-		room.removeObject(item);
-		items++;
-		if (item.getName().equals("Treasure")) {
-			score += 100;
-			Engine.endGame(true);
+	private void pickItem(Point2D p, Vector2D v) {
+		while (room.getObject(p) != null) {
+			if (items == CAPACITY)
+				break ;
+			GameElement item = room.getObject(p);
+			item.setPosition(new Point2D(items, Engine.GRID_HEIGHT - 2));
+			itemsBar.add(item);
+			room.removeObject(item);
+			if (item instanceof Treasure) {
+				score += 100;
+				Engine.endGame(true);
+			}
+			items++;
 		}
+		move(v);
 	}
 	
 	// Drops an Object in the index specified
@@ -191,13 +173,13 @@ public class Hero extends GameElement implements Mob {
 	
 	public void heal() {
 		for (GameElement item : itemsBar) {
-			if (item.getName().equals("HealingPotion")) {
-				HealingPotion p = (HealingPotion)item;
+			if (item instanceof HealingPotion) {
 				int index = itemsBar.indexOf(item);
-				setLife(p.getHeal());
+				setLife(((HealingPotion)item).getHeal());
 				Engine.removeObject(item);
 				itemsBar.remove(item);
 				sortItemsBar(index);
+				poisened = false;
 				items--;
 				break ;
 			}
@@ -211,17 +193,36 @@ public class Hero extends GameElement implements Mob {
 			itemsBar.get(i).setPosition(new Point2D(i, Engine.GRID_HEIGHT - 2));
 	}
 	
+	public void poisened() {
+		poisened = true;
+	}
+	
+	public boolean isPoisened() {
+		return poisened;
+	}
+	
+	public GameElement stealItem() {
+		if (items == 0)
+			return null;
+		int index = (int)(Math.random() * items);
+		GameElement e = itemsBar.get(index);
+		Engine.removeObject(e);
+		itemsBar.remove(e);
+		sortItemsBar(index);
+		items--;
+		return e;
+	}
+	
 	private boolean hasKey(Door door) {
 		if  (door.getID() == -1)
 			return true;
 		for (GameElement item : itemsBar) {
-			if (item.getName().equals("Key")) {
-				Key k = (Key)item;
-				if (k.getID() == door.getID()) {
+			if (item instanceof Key) {
+				if (((Key)item).getID() == door.getID()) {
 					itemsBar.remove(item);
 					sortItemsBar(itemsBar.indexOf(item));
-					items--;
 					Engine.removeObject(item);
+					items--;
 					return true;
 				}	
 			}
@@ -231,14 +232,14 @@ public class Hero extends GameElement implements Mob {
 	
 	private int hasSword() {
 		for (GameElement item : itemsBar)
-			if (item.getName().equals("Sword"))
+			if (item instanceof Sword)
 				return SWORD;
 		return 1;
 	}
 	
 	private boolean hasArmor() {
 		for (GameElement item : itemsBar)
-			if (item.getName().equals("Armor"))
+			if (item instanceof Armor)
 				return true;
 		return false;
 	}
@@ -258,8 +259,7 @@ public class Hero extends GameElement implements Mob {
 		} 
 		else
 			Engine.reDoMap(d.getNextRoom());
-		Door door = (Door)Engine.getRoom(d.getNextRoom()).getObject(d.getNextPosition());
-		door.openDoor();
+		((Door)Engine.getRoom(d.getNextRoom()).getObject(d.getNextPosition())).openDoor();
 		room.removeObject(this);
 		room = Engine.getCurrentRoom();
 		setPosition(d.getNextPosition());

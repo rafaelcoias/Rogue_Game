@@ -8,48 +8,26 @@ public class Door extends GameElement {
 	private Point2D nextPosition;
 	
 	private final int ID;
-	private boolean opened;
 	private final static int LAYER = 0;
 	
 	public Door(Point2D position, Room nextRoom, Point2D nextPosition, int ID) {
-		super(position, LAYER);
+		super(position, LAYER, "DoorClosed");
 		this.nextRoom = nextRoom;
 		this.nextPosition = nextPosition;
 		this.ID = ID;
-		opened = false;
 	}
 	
 	public Door(Point2D position, Room nextRoom, Point2D nextPosition) {
-		super(position, LAYER);
+		super(position, LAYER, "DoorClosed");
 		this.nextRoom = nextRoom;
 		this.nextPosition = nextPosition;
 		ID = -1;
-		opened = true;
-	}
-	
-// ImageTile Interface
-	
-	@Override
-	public String getName() {
-		if (opened)
-			return "DoorOpen";
-		return "DoorClosed";
-	}
-
-	@Override
-	public Point2D getPosition() {
-		return super.getPosition();
-	}
-
-	@Override
-	public int getLayer() {
-		return super.getLayer();
 	}
 	
 // Only Door
 	
 	public void openDoor() {
-		opened = true;
+		setName("DoorOpen");
 	}
 	
 	public int getID() {
@@ -62,5 +40,9 @@ public class Door extends GameElement {
 	
 	public Point2D getNextPosition() {
 		return nextPosition;
+	}
+	
+	public boolean isOpen() {
+		return getName().equals("DoorOpen");
 	}
 }

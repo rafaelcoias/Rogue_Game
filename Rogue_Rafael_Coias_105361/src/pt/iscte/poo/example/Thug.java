@@ -10,29 +10,11 @@ public class Thug extends GameElement implements Mob {
 	
 	private final static int KILLVALUE = 30;
 	private final static int DAMAGE = -1;
-	private final static int LAYER = 2;
 	
 	
 	public Thug(Point2D position, Room room) {
-		super(position, LAYER);
+		super(position, LAYER, "Thug");
 		this.room = room;
-}
-	
-// ImageTile Interface	
-	
-	@Override
-	public String getName() {
-		return "Thug";
-	}
-
-	@Override
-	public Point2D getPosition() {
-		return super.getPosition();
-	}
-
-	@Override
-	public int getLayer() {
-		return super.getLayer();
 	}
 	
 // Mob Interface	
@@ -44,14 +26,11 @@ public class Thug extends GameElement implements Mob {
 			mob.setLife(DAMAGE * 3);
 		else
 			mob.setLife(DAMAGE);
-		if (mob.getLife() > 0)
-			return ;
-		Engine.endGame(false);
 	}
 	
 	@Override
 	public boolean canMove(GameElement e) {
-		return e.getLayer() < getLayer();
+		return e instanceof Item || e instanceof Floor;
 	}
 	
 	@Override

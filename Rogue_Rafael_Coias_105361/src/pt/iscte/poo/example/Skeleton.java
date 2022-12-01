@@ -15,36 +15,15 @@ public class Skeleton extends GameElement implements Mob {
 	private final static int LAYER = 2;
 	
 	public Skeleton(Point2D position, Room room) {
-		super(position, LAYER);
+		super(position, LAYER, "Skeleton");
 		this.room = room;
-	}
-	
-// ImageTile Interface	
-	
-	@Override
-	public String getName() {
-		return "Skeleton";
-	}
-
-	@Override
-	public Point2D getPosition() {
-		return super.getPosition();
-	}
-
-	@Override
-	public int getLayer() {
-		return super.getLayer();
 	}
 	
 // Mob Interface
 	
 	@Override
 	public void attack(Vector2D moveVector) {
-		Mob mob = (Mob)room.getObject(getPosition().plus(moveVector));
-		mob.setLife(DAMAGE);
-		if (mob.getLife() > 0)
-			return ;
-		Engine.endGame(false);
+		((Mob)room.getObject(getPosition().plus(moveVector))).setLife(DAMAGE);
 	}
 	
 	@Override
@@ -59,7 +38,7 @@ public class Skeleton extends GameElement implements Mob {
 	
 	@Override
 	public boolean canMove(GameElement e) {
-		return e.getLayer() < getLayer();
+		return e instanceof Item || e instanceof Floor;
 	}
 	
 	@Override

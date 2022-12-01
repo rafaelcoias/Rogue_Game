@@ -1,7 +1,7 @@
 USERNAME - SCORE - DATE
 
-guilherme 360 2022/11/17
-guilherme 360 2022/11/17
-a 360 2022/11/20
-k 360 2022/11/22
 vasco 340 2022/11/22
+antonio 310 2022/11/20
+rafael 300 2022/11/26
+rafael 275 2022/12/01
+karlota 200 2022/11/22

@@ -10,28 +10,10 @@ public class Bat extends GameElement implements Mob {
 	
 	private final static int KILLVALUE = 5;
 	private final static int DAMAGE = -1;
-	private final static int LAYER = 2;
 	
 	public Bat(Point2D position, Room room) {
-		super(position, LAYER);
+		super(position, LAYER, "Bat");
 		this.room = room;
-	}
-	
-// ImageTile Interface	
-	
-	@Override
-	public String getName() {
-		return "Bat";
-	}
-
-	@Override
-	public Point2D getPosition() {
-		return super.getPosition();
-	}
-
-	@Override
-	public int getLayer() {
-		return super.getLayer();
 	}
 	
 // Mob Interface	
@@ -40,24 +22,20 @@ public class Bat extends GameElement implements Mob {
 	public void attack(Vector2D moveVector) {
 		if (random(50))
 			return ;
-		Mob mob = (Mob)room.getObject(getPosition().plus(moveVector));
-		mob.setLife(DAMAGE);
+		((Mob)room.getObject(getPosition().plus(moveVector))).setLife(DAMAGE);
 		setLife(1);
-		if (mob.getLife() > 0)
-			return ;
-		Engine.endGame(false);
 	}
 	
 	@Override
 	public void move(Vector2D v) {
 		GameElement e = room.getObject(getPosition().plus(v));
-		if (random(50) && (e == null || (canMove(e) && !e.getName().equals("DoorClosed") && !e.getName().equals("DoorOpen")))) {
+		if (random(50) && (e == null || (canMove(e) && !(e instanceof Door)))) {
 			setPosition(getPosition().plus(v));
 			return ;
 		}
 		Vector2D randomVector = randomVector();
 		e = room.getObject(getPosition().plus(randomVector));
-		if (e == null || (canMove(e) && !e.getName().equals("DoorClosed") && !e.getName().equals("DoorOpen")))
+		if (e == null || (canMove(e) && !(e instanceof Door)))
 			setPosition(getPosition().plus(randomVector));
 	}
 	

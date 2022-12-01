@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 
 public class Main {
 	
-	private static String[] menuOptions = {"Play", "Check Scores", "Exit"};
+	private static String[] menuOptions = {"Play", "Best Scores", "Exit"};
 	private static String[] scoreOptions = {"Return"};
 	
 	// The program starts here.
@@ -20,7 +20,7 @@ public class Main {
 	}
 	
 	public static boolean initMenu() {
-		int op = JOptionPane.showOptionDialog(null, "Choose an Option :", "MENU", 0, 1, null, menuOptions, null);
+		int op = JOptionPane.showOptionDialog(null, "Choose an Option", "MENU", 0, 1, null, menuOptions, null);
 		if (op == 0)
 			Engine.getInstance().start();
 		else if (op == 1) {

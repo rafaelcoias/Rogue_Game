@@ -10,22 +10,38 @@ public abstract class GameElement implements ImageTile {
 
 	private Point2D position;
 	private final int LAYER;
+	private String name;
 	
-	public GameElement(Point2D position, int layer) {
+	public GameElement(Point2D position, int layer, String name) {
 		this.position = position;
 		this.LAYER = layer;
+		this.name = name;
 	}
 	
+// ImageTile Interface	
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
 	public Point2D getPosition() {
 		return position;
 	}
+	
+	@Override
+	public int getLayer() {
+		return LAYER;
+	}
+	
 	
 	public void setPosition(Point2D position) {
 		this.position = position;
 	}
 	
-	public int getLayer() {
-		return LAYER;
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	// Creates a Random number between 1 - 100 and
