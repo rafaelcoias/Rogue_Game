@@ -21,7 +21,6 @@ public class Hero extends GameElement implements Mob {
 	private final static int CAPACITY = 3;
 	
 	private ArrayList<GameElement> itemsBar = new ArrayList<>();
-	private int items = 0;
 	
 	private ArrayList<Square> lifeBar = new ArrayList<>();
 
@@ -130,17 +129,16 @@ public class Hero extends GameElement implements Mob {
 	
 	private void pickItem(Point2D p, Vector2D v) {
 		while (room.getObject(p) != null) {
-			if (items == CAPACITY)
+			if (itemsBar.size() == CAPACITY)
 				break ;
 			GameElement item = room.getObject(p);
-			item.setPosition(new Point2D(items, Engine.GRID_HEIGHT - 2));
+			item.setPosition(new Point2D(itemsBar.size(), Engine.GRID_HEIGHT - 2));
 			itemsBar.add(item);
 			room.removeObject(item);
 			if (item instanceof Treasure) {
 				score += 100;
 				Engine.endGame(true);
 			}
-			items++;
 		}
 		move(v);
 	}
@@ -155,14 +153,13 @@ public class Hero extends GameElement implements Mob {
 	
 	public void dropItem(int index) {
 		index = index - '1';
-		if (index >= items)
+		if (index >= itemsBar.size())
 			 return ;
 		GameElement item = itemsBar.get(index);
 		item.setPosition(getPosition());
 		itemsBar.remove(index);
 		room.addObject(item);
 		sortItemsBar(index);
-		items--;
 	}
 	
 	// Checks if the hero has an HealingPotion on his
@@ -180,7 +177,6 @@ public class Hero extends GameElement implements Mob {
 				itemsBar.remove(item);
 				sortItemsBar(index);
 				poisened = false;
-				items--;
 				break ;
 			}
 		}
@@ -189,7 +185,7 @@ public class Hero extends GameElement implements Mob {
 	// Sorts item bar by moving every item to the left
 	
 	private void sortItemsBar(int index) {
-		for (int i = 0; i != items - 1; i++)
+		for (int i = 0; i != itemsBar.size(); i++)
 			itemsBar.get(i).setPosition(new Point2D(i, Engine.GRID_HEIGHT - 2));
 	}
 	
@@ -202,14 +198,13 @@ public class Hero extends GameElement implements Mob {
 	}
 	
 	public GameElement stealItem() {
-		if (items == 0)
+		if (itemsBar.size() == 0)
 			return null;
-		int index = (int)(Math.random() * items);
+		int index = (int)(Math.random() * itemsBar.size());
 		GameElement e = itemsBar.get(index);
 		Engine.removeObject(e);
 		itemsBar.remove(e);
 		sortItemsBar(index);
-		items--;
 		return e;
 	}
 	
@@ -222,7 +217,6 @@ public class Hero extends GameElement implements Mob {
 					itemsBar.remove(item);
 					sortItemsBar(itemsBar.indexOf(item));
 					Engine.removeObject(item);
-					items--;
 					return true;
 				}	
 			}
@@ -256,20 +250,41 @@ public class Hero extends GameElement implements Mob {
 			Engine.addRoom(d.getNextRoom());
 			Engine.createMap(d.getNextRoom());
 			score += 10;
+			((Door)Engine.getRoom(d.getNextRoom()).getObject(d.getNextPosition())).openDoor();
+			room.removeObject(this);
+			room = Engine.getCurrentRoom();
+			setPosition(d.getNextPosition());
+			Engine.checkPoint();
+			return ;
 		} 
-		else
-			Engine.reDoMap(d.getNextRoom());
+		Engine.reDoMap(d.getNextRoom());
 		((Door)Engine.getRoom(d.getNextRoom()).getObject(d.getNextPosition())).openDoor();
 		room.removeObject(this);
 		room = Engine.getCurrentRoom();
 		setPosition(d.getNextPosition());
 	}
 	
-	// Set the current room
+// Set Functions
 	
 	public void setRoom(Room room) {
 		this.room = room;
 	}
+	
+	public void setHeroLife(int life) {
+		this.life = life;
+	}
+	
+	public void setHeroScore(int score) {
+		this.score = score;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setItems(ArrayList<GameElement> itemsBar) {
+		this.itemsBar = (ArrayList<GameElement>)itemsBar.clone();
+		for (GameElement e : itemsBar)
+			Engine.addObjectImage(e);
+	}
+	
 	
 // Resets
 	
@@ -294,10 +309,7 @@ public class Hero extends GameElement implements Mob {
 		return result;
 	}	
 	
-	public ArrayList<ImageTile> getItems() {
-		ArrayList<ImageTile> list = new ArrayList<>();
-		for (GameElement item : itemsBar)
-			list.add((ImageTile)item);
-		return list;
-	}	 
+	public ArrayList<GameElement> getItems() {
+		return itemsBar;
+	} 
 }

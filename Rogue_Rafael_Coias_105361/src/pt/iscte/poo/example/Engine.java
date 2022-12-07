@@ -40,13 +40,13 @@ public class Engine implements Observer {
 	private static int turns;
 	
 	// Game Menus
-	private static String[] endOptions = {"Play Again", "Exit"};
+	private static String[] endOptions = {"CheckPoint", "Play Again", "Exit"};
 	private static boolean win = false;
 	private static boolean ended = false;
 	
 	// Game Rooms
 	private static Room currentRoom;
-	private static List<Room> rooms = new ArrayList<>();
+	private static ArrayList<Room> rooms = new ArrayList<>();
 	
 // Project
 	
@@ -105,6 +105,8 @@ public class Engine implements Observer {
 		} catch (FileNotFoundException e) {
 			System.err.println("Erro na abertura do ficheiro");
 		}
+		checkPoint();
+		gui.setStatusMessage(" Moves:  " + turns + "  |  "+ "Score:  " + hero.getScore());
 	}
 	
 	// Reads the file "room0" and adds a wall
@@ -219,7 +221,7 @@ public class Engine implements Observer {
 	
 	private void moveMobs() {
 		for (GameElement e : currentRoom.getObjects()) {
-			if (isMob(e) && !(e instanceof Hero)) {
+			if (e instanceof Mob && !(e instanceof Hero)) {
 				Vector2D moveVector = e.getPosition().vectorTo(hero.getPosition());
 				GameElement objInFront = currentRoom.getObject(e.getPosition().plus(moveVector));
 				Mob mob = (Mob)e;
@@ -231,10 +233,6 @@ public class Engine implements Observer {
 					mob.move(moveVector);
 			}
 		}
-	}
-	
-	private boolean isMob(GameElement e) {
-		return e.getLayer() == 2;
 	}
 	
 // Static References	
@@ -256,6 +254,10 @@ public class Engine implements Observer {
 	public static void addObject(GameElement e) {
 		gui.addImage(e);
 		currentRoom.addObject((GameElement)e);
+	}
+	
+	public static void addObjectImage(GameElement e) {
+		gui.addImage(e);
 	}
 	
 	// Clear Every object in the game
@@ -317,6 +319,47 @@ public class Engine implements Observer {
 		username = user;
 	}
 	
+	// Save All When the Hero enters a Room
+	
+	@SuppressWarnings("unchecked")
+	public static void checkPoint() {
+		checkPoint.rooms = (ArrayList<Room>)rooms.clone();
+		checkPoint.heroItems = (ArrayList<GameElement>)hero.getItems().clone();
+		checkPoint.room = currentRoom;
+		checkPoint.initPosition = hero.getPosition();
+		checkPoint.heroLife = hero.getLife();
+		checkPoint.heroScore = hero.getScore();
+		checkPoint.turns = turns;
+	}
+	
+	// Puts everything from CheckPoint to Engine
+	
+	@SuppressWarnings("unchecked")
+	public static void useCheckPoint() {
+		int index = rooms.indexOf(currentRoom);
+		resetAllCheckPoint();
+		rooms = (ArrayList<Room>)checkPoint.rooms.clone();
+		currentRoom = checkPoint.room;
+		hero.setPosition(checkPoint.initPosition);
+		hero.setRoom(currentRoom);
+		hero.setHeroLife(checkPoint.heroLife);
+		hero.setLife(0);
+		hero.setHeroScore(checkPoint.heroScore);
+		hero.setItems(checkPoint.heroItems);
+		turns = checkPoint.turns;
+		gui.addImage(hero);
+		createMap(rooms.get(index));
+		if (rooms.size() > 1)
+			getDoorInPosition(hero.getPosition()).openDoor();
+	}
+	
+	private static Door getDoorInPosition(Point2D p) {
+		for (GameElement e : currentRoom.getObjects())
+			if (e instanceof Door && e.getPosition().equals(p))
+				return (Door)e;
+		return null;
+	}
+
 // Game's end
 	
 	// Ends the game when hero dies or when it finds the treasure
@@ -339,17 +382,32 @@ public class Engine implements Observer {
 	// Escape - exit
 	
 	private void checkEndGame() {
-		boolean exit;
+		int exit;
 		if (win)
-			exit = JOptionPane.showOptionDialog(null, "Congratulations, " + username + "\nYour Score : " + hero.getScore(),"You Won", 0, 3, null, endOptions, null) == 0 ? false : true;
+			exit = JOptionPane.showOptionDialog(null, "Congratulations, " + username + "\nYour Score : " + hero.getScore(),"You Won", 0, 3, null, endOptions, null);
 		else
-			exit = JOptionPane.showOptionDialog(null, "Nice try, " + username + "\nYour Score : " + hero.getScore(), "Game Over", 0, 3, null, endOptions, null) == 0 ? false : true;
-		if (exit)
+			exit = JOptionPane.showOptionDialog(null, "Nice try, " + username + "\nYour Score : " + hero.getScore(), "Game Over", 0, 3, null, endOptions, null);
+		if (exit == 2)
 			gui.dispose();
-		else {
+		else if (exit  == 1) {
 			resetAll();
 			start();
 		}
+		else if (exit == 0) {
+			useCheckPoint();
+		}
+	}
+	
+	private static void resetAllCheckPoint() {
+		for (GameElement e : currentRoom.getObjects())
+			gui.removeImage(e);
+		for (GameElement item : hero.getItems())
+			gui.removeImage(item);
+		gui.removeImages(hero.getLifeBar());
+		hero.resetScore();
+		turns = 0;
+		win = false;
+		ended = false;
 	}
 	
 	// Resets all game statistics and objects
@@ -360,12 +418,13 @@ public class Engine implements Observer {
 				gui.removeImage(e);
 			r.getObjects().clear();
 		}
-		gui.removeImages(hero.getItems());
+		for (GameElement item : hero.getItems())
+			gui.removeImage(item);
 		gui.removeImages(hero.getLifeBar());
 		hero.clearItems();
+		rooms.clear();
 		gui.removeImage(hero);
 		hero.resetScore();
-		rooms.clear();
 		turns = 0;
 		win = false;
 		ended = false;

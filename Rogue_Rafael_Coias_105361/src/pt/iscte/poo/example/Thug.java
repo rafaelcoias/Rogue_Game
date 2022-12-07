@@ -9,7 +9,7 @@ public class Thug extends GameElement implements Mob {
 	private int life = 10;
 	
 	private final static int KILLVALUE = 30;
-	private final static int DAMAGE = -1;
+	private final static int DAMAGE = -3;
 	
 	
 	public Thug(Point2D position, Room room) {
@@ -23,8 +23,6 @@ public class Thug extends GameElement implements Mob {
 	public void attack(Vector2D moveVector) {
 		Mob mob = (Mob)room.getObject(getPosition().plus(moveVector));
 		if (random(30))
-			mob.setLife(DAMAGE * 3);
-		else
 			mob.setLife(DAMAGE);
 	}
 	
