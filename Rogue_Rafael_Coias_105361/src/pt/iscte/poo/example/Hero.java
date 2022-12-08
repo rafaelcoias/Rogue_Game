@@ -262,6 +262,7 @@ public class Hero extends GameElement implements Mob {
 		room.removeObject(this);
 		room = Engine.getCurrentRoom();
 		setPosition(d.getNextPosition());
+		Engine.checkPoint();
 	}
 	
 // Set Functions

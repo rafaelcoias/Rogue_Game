@@ -105,7 +105,8 @@ public class Engine implements Observer {
 		} catch (FileNotFoundException e) {
 			System.err.println("Erro na abertura do ficheiro");
 		}
-		checkPoint();
+		if (rooms.size() == 1)
+			checkPoint();
 		gui.setStatusMessage(" Moves:  " + turns + "  |  "+ "Score:  " + hero.getScore());
 	}
 	
@@ -326,10 +327,12 @@ public class Engine implements Observer {
 		checkPoint.rooms = (ArrayList<Room>)rooms.clone();
 		checkPoint.heroItems = (ArrayList<GameElement>)hero.getItems().clone();
 		checkPoint.room = currentRoom;
-		checkPoint.initPosition = hero.getPosition();
+		checkPoint.initPositionX = hero.getPosition().getX();
+		checkPoint.initPositionY = hero.getPosition().getY();
 		checkPoint.heroLife = hero.getLife();
 		checkPoint.heroScore = hero.getScore();
 		checkPoint.turns = turns;
+		checkPoint.saveOpenDoors(currentRoom);
 	}
 	
 	// Puts everything from CheckPoint to Engine
@@ -340,7 +343,7 @@ public class Engine implements Observer {
 		resetAllCheckPoint();
 		rooms = (ArrayList<Room>)checkPoint.rooms.clone();
 		currentRoom = checkPoint.room;
-		hero.setPosition(checkPoint.initPosition);
+		hero.setPosition(new Point2D(checkPoint.initPositionX, checkPoint.initPositionY));
 		hero.setRoom(currentRoom);
 		hero.setHeroLife(checkPoint.heroLife);
 		hero.setLife(0);
@@ -349,8 +352,8 @@ public class Engine implements Observer {
 		turns = checkPoint.turns;
 		gui.addImage(hero);
 		createMap(rooms.get(index));
-		if (rooms.size() > 1)
-			getDoorInPosition(hero.getPosition()).openDoor();
+		for (Point2D p : checkPoint.doors)
+			getDoorInPosition(p).openDoor();
 	}
 	
 	private static Door getDoorInPosition(Point2D p) {
@@ -393,9 +396,8 @@ public class Engine implements Observer {
 			resetAll();
 			start();
 		}
-		else if (exit == 0) {
+		else if (exit == 0)
 			useCheckPoint();
-		}
 	}
 	
 	private static void resetAllCheckPoint() {
@@ -403,6 +405,7 @@ public class Engine implements Observer {
 			gui.removeImage(e);
 		for (GameElement item : hero.getItems())
 			gui.removeImage(item);
+		currentRoom.getObjects().clear();
 		gui.removeImages(hero.getLifeBar());
 		hero.resetScore();
 		turns = 0;

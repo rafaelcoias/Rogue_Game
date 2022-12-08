@@ -2,7 +2,7 @@ package pt.iscte.poo.example;
 
 import pt.iscte.poo.utils.Point2D;
 
-public class Door extends GameElement {
+public class Door extends GameElement implements Imovel {
 	
 	private Room nextRoom;
 	private Point2D nextPosition;

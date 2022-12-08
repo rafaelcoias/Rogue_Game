@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="GraphPack_2022_2023_V1_1/src"/>
+	<classpathentry kind="src" path="Rogue_Rafael_Coias_105361/src"/>
+	<classpathentry kind="output" path="GraphPack_2022_2023_V1_1/bin"/>
+</classpath>
