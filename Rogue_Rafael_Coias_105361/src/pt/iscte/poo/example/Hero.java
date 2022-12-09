@@ -17,7 +17,7 @@ public class Hero extends GameElement implements Mob {
 	
 	private final static int MAXLIFE = 10;
 	private final static int SWORD = 2;
-	private final static int DAMAGE = -2;
+	private final static int DAMAGE = -1;
 	private final static int CAPACITY = 3;
 	
 	private ArrayList<GameElement> itemsBar = new ArrayList<>();
