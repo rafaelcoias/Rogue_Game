@@ -31,7 +31,7 @@ Click *run* and have fun!
 
 ## My Grade
 
-Coming soon
+**A**
 
 <hr>
 
